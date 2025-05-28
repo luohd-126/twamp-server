@@ -152,9 +152,9 @@ def conn_handler(connfd, udpport):
             data, addr = udpSocket.recvfrom(1024)
             if not data:
                 break
-            recvTime = time.time()
-            print("receive <== host-{}:len-{}".format(connfd.getpeername(), len(data)))
-            reflectMsg = bytearray(58)
+            recvTime = time.time() + 2208988800
+            print("receive <== host-{}:len-{}:seqNo-{}".format(connfd.getpeername(), len(data), seqNo))
+            reflectMsg = bytearray(len(data))
             reflectMsg[0:4] = struct.pack(">I", seqNo)[:4]
             #++seqNo
             seqNo += 1
@@ -163,13 +163,13 @@ def conn_handler(connfd, udpport):
             reflectMsg[24:28] = data[0:4]
             reflectMsg[28:36] = data[4:12]
 
-            sendTime = time.time()
+            sendTime = time.time() + 2208988800
             reflectMsg[4:8] = struct.pack(">I", int(sendTime))[:4]
             reflectMsg[8:12] = struct.pack(">f", sendTime - int(sendTime))[:4]
-            print("seqNo: ", seqNo)
-            print("receive ===data = {}:reflectMsg = {}".format(seqNo, data, reflectMsg))
+            #print("seqNo: ", seqNo)
+            #print("receive ===data = {}:reflectMsg = {}".format(seqNo, data, reflectMsg))
             udpSocket.sendto(reflectMsg, addr)
-            print("send out hello")
+            #print("send out hello")
     #except socket.timeout:
     except Exception:
         print ("udp socket timeout")

@@ -7,6 +7,7 @@ from signal import *
 from time import sleep
 import time
 import struct
+import threading
 
 HOST=''
 PORT=862
@@ -156,26 +157,24 @@ def conn_handler(connfd, udpport):
             print("receive <== host-{}:len-{}:seqNo-{}".format(connfd.getpeername(), len(data), seqNo))
             reflectMsg = bytearray(len(data))
             reflectMsg[0:4] = struct.pack(">I", seqNo)[:4]
-            #++seqNo
             seqNo += 1
             reflectMsg[16:20] = struct.pack(">I", int(recvTime))[:4]
-            reflectMsg[20:24] = struct.pack(">f", recvTime - int(recvTime))[:4] 
+            #reflectMsg[20:24] = struct.pack(">f", recvTime - int(recvTime))[:4] 
+            reflectMsg[20:24] = struct.pack(">I", int((recvTime - int(recvTime)) * (2 ** 32))))[:4]
             reflectMsg[24:28] = data[0:4]
             reflectMsg[28:36] = data[4:12]
 
             sendTime = time.time() + 2208988800
             reflectMsg[4:8] = struct.pack(">I", int(sendTime))[:4]
-            reflectMsg[8:12] = struct.pack(">f", sendTime - int(sendTime))[:4]
-            #print("seqNo: ", seqNo)
+            #reflectMsg[8:12] = struct.pack(">f", sendTime - int(sendTime))[:4]
+            reflectMsg[8:12] = struct.pack(">I", int((sendTime - int(sendTime)) * (2 ** 32)))[:4]
             #print("receive ===data = {}:reflectMsg = {}".format(seqNo, data, reflectMsg))
             udpSocket.sendto(reflectMsg, addr)
-            #print("send out hello")
     #except socket.timeout:
     except Exception:
         print ("udp socket timeout")
     udpSocket.close()
     connfd.close()
-    sys.exit(0)
 
 # loop handing client request
 nextPort = minPort
@@ -188,22 +187,12 @@ while True:
         connfd, address = sockfd.accept()
         connfd.settimeout(ctrlConnTimeout)
         print("new connnections:", address)
+        thread = threading.Thread(target=conn_handler, args=(connfd, nextPort))
+        thread.daemon = True
+        thread.start()
     except KeyboardInterrupt:
         print("Quit!")
         sys.exit(1)
     except Exception as e:
         print(e)
-        continue
-
-    signal(SIGCHLD, SIG_IGN)
-
-    pid = os.fork()
-    if pid < 0:
-        print("fork child failed")
-        connfd.close()
-        continue
-    elif pid == 0:
-        conn_handler(connfd, nextPort)
-    else:
-        connfd.close()
         continue

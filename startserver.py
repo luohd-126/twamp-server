@@ -160,7 +160,7 @@ def conn_handler(connfd, udpport):
             seqNo += 1
             reflectMsg[16:20] = struct.pack(">I", int(recvTime))[:4]
             #reflectMsg[20:24] = struct.pack(">f", recvTime - int(recvTime))[:4] 
-            reflectMsg[20:24] = struct.pack(">I", int((recvTime - int(recvTime)) * (2 ** 32))))[:4]
+            reflectMsg[20:24] = struct.pack(">I", int((recvTime - int(recvTime)) * (2 ** 32)))[:4]
             reflectMsg[24:28] = data[0:4]
             reflectMsg[28:36] = data[4:12]
 

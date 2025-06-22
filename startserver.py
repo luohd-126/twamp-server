@@ -9,7 +9,7 @@ import time
 import struct
 import threading
 
-HOST=''
+HOST='::'
 PORT=862
 ctrlConnTimeout = 60    # 控制面连接超时时间，单位为秒 
 measTimeout = 30        # 测量面连接超时时间，单位为秒
@@ -19,6 +19,7 @@ maxPort = 60000
 
 # create socket, reuse port, bind, listen
 sockfd = socket()
+sockfd.setsockopt(IPPROTO_IPV6, IPV6_V6ONLY, 0)
 sockfd.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 address = (HOST, PORT)
 sockfd.bind(address)
@@ -140,9 +141,10 @@ def conn_handler(connfd, udpport):
     connfd.settimeout(None)
 
     # meas connections, do meas test 
-    udpaddress = ("", udpport)
+    udpaddress = (HOST, udpport)
     print ("udp port:", udpport)
-    udpSocket = socket(AF_INET, SOCK_DGRAM)
+    udpSocket = socket(AF_INET6, SOCK_DGRAM)
+    udpSocket.setsockopt(IPPROTO_IPV6, IPV6_V6ONLY, 0)
     udpSocket.bind(udpaddress)
     udpSocket.settimeout(measTimeout)
     print ("waiting udp packet")
